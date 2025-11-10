@@ -1,0 +1,9 @@
+1. Service:
+   kubectl get svc ml-service -o wide
+
+2. Port-forward (no Ingress):
+   kubectl port-forward svc/ml-service 8080:80
+   curl http://localhost:8080/health
+
+3. Ingress (if enabled and ALB controller installed):
+   kubectl get ingress ml-service
