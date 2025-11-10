@@ -1,13 +1,22 @@
 name: ci-sanity
-on: [push]
+on: [push, pull_request]
+
 jobs:
     fmt-validate:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
+
+            - name: Setup Terraform
+              uses: hashicorp/setup-terraform@v3
+              with:
+                  terraform_version: 1.7.5
+
             - name: Terraform fmt
               run: terraform fmt -check -recursive
+
             - name: Helm lint
               run: helm lint ./helm/ml-service || true
+
             - name: Docker build (smoke)
               run: docker build -t ml-service:ci .
