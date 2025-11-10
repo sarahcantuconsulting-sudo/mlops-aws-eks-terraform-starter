@@ -27,7 +27,9 @@ The [Issues](./issues) tab tracks the next steps toward a production-grade setup
 ⬜ Security hardening & cost tagging  
 ⬜ HPA and Ingress/ALB example  
 
-Each item is designed to be implemented in a 2–4 hour working session.  
+ - This repo is the Starter. A fuller Blueprint may be split into a separate repo after v0.1.0.
+ - v0.0.3 adds demo Terraform modules (VPC, EKS, ECR) to illustrate structure. Not intended for production apply.
+  
 
 ---
 
