@@ -1,0 +1,11 @@
+name: build-and-lint
+on: [push]
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - name: Docker build
+              run: docker build -t ml-service:ci .
+            - name: Terraform fmt
+              run: terraform fmt -check -recursive

@@ -1,0 +1,13 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: ml-service }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: ml-service } }
+  template:
+    metadata: { labels: { app: ml-service } }
+    spec:
+      containers:
+        - name: api
+          image: '<ECR_URI>/ml-service:{{ .Values.imageTag | default "latest" }}'
+          ports: [{ containerPort: 8080 }]
