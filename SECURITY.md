@@ -1,0 +1,1 @@
+Report via Issues. Do not submit secrets. This repo is a demo; no real credentials.
