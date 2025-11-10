@@ -15,6 +15,22 @@ Includes placeholders for CI build/push/deploy, CloudWatch logging hooks, and co
 
 ---
 
+### Roadmap → From Starter to Production
+
+This scaffold is intentionally minimal.  
+The [Issues](./issues) tab tracks the next steps toward a production-grade setup:
+
+✅ Basic CI/CD, Helm chart, and FastAPI toy app  
+⬜ Terraform EKS/VPC modules  
+⬜ GitHub Actions deploy to EKS (OIDC + IRSA)  
+⬜ CloudWatch log shipping (Fluent Bit)  
+⬜ Security hardening & cost tagging  
+⬜ HPA and Ingress/ALB example  
+
+Each item is designed to be implemented in a 2–4 hour working session.  
+
+---
+
 ### What You Get
 - Terraform scaffold for core infrastructure  
 - Example Helm chart for a single ML service  
