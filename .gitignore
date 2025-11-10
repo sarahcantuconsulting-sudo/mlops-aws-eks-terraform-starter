@@ -7,3 +7,7 @@ node_modules/
 .vscode/
 .env
 .env.*
+*.pyc
+*.pyo
+*.pyd
+Dockerfile
