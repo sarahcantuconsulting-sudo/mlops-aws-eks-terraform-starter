@@ -55,6 +55,9 @@ Model → Docker → ECR → Helm → EKS Service
                     ↳ CloudWatch Logs
 ```
 
+**Expose the service**
+- ClusterIP (default): `kubectl port-forward svc/ml-service 8080:80` → `curl :8080/health`
+- Ingress/ALB (optional): set `ingress.enabled=true` and ensure AWS Load Balancer Controller is installed.
 
 Rollback: `helm rollback <release>`
 
