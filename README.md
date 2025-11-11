@@ -64,3 +64,17 @@ Rollback: `helm rollback <release>`
 ---
 
 See [`/docs/case-study.md`](./docs/case-study.md) and [`/docs/runbook.md`](./docs/runbook.md) for details.
+
+---
+
+## CI/CD: Deploy on Tag
+
+This repository includes a GitHub Actions workflow for automated builds and (optional) deploys.
+
+**What happens when you push a tag (e.g., `v0.0.5`):**
+1. GitHub Actions assumes your AWS role via OIDC (no long-lived keys).
+2. Builds and tags the Docker image with the commit SHA.
+3. Pushes the image to your ECR repository.
+4. *(Optional)* Deploys to EKS via Helm if a cluster name is configured.
+
+See `.github/workflows/deploy-on-tag.yml` for full details.
