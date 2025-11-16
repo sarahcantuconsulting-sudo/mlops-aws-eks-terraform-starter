@@ -10,3 +10,6 @@ node_modules/
 *.pyc
 *.pyo
 *.pyd
+
+# Don't commit generated K8s manifests with hardcoded values
+# k8s/infra/*-generated.yaml

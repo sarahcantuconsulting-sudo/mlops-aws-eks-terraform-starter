@@ -1,0 +1,18 @@
+# helm/alb-controller/values.yaml
+# Values for AWS Load Balancer Controller
+# Dynamic values (clusterName, region, vpcId, role ARN) set via install.sh
+
+clusterName: "" # Set via --set in install.sh
+region: "" # Set via --set in install.sh
+vpcId: "" # Set via --set in install.sh
+
+serviceAccount:
+  create: true # Let Helm manage the ServiceAccount
+  name: aws-load-balancer-controller
+  annotations: {} # Role ARN annotation set via --set in install.sh
+
+# Optional: Override these via --set if needed
+defaultTags:
+  project: mlops-starter
+  env: demo
+  owner: mlops-starter
