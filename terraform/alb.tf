@@ -15,14 +15,14 @@ data "aws_iam_policy_document" "alb_irsa_assume" {
     actions = ["sts:AssumeRoleWithWebIdentity"]
 
     principals {
-      type        = "Federated"
+      type = "Federated"
       identifiers = [
         "arn:aws:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/${module.eks.oidc_provider}"
       ]
     }
 
     condition {
-      test     = "StringEquals"
+      test = "StringEquals"
       # oidc_provider is issuer URL *without* https://, e.g. oidc.eks.us-east-1.amazonaws.com/id/...
       variable = "${module.eks.oidc_provider}:sub"
       values   = ["system:serviceaccount:kube-system:aws-load-balancer-controller"]
