@@ -131,7 +131,14 @@ See [`/docs/case-study.md`](./docs/case-study.md) and [`/docs/runbook.md`](./doc
 
 ## CI/CD: Deploy on Tag
 
-This repository includes a GitHub Actions workflow for automated builds and deploys.
+This repository includes a GitHub Actions workflow for automated builds and deploys using **OIDC authentication** (no long-lived IAM keys).
+
+**Security Features:**
+- ✅ **OIDC instead of IAM keys** - No credentials in GitHub secrets (federated auth)
+- ✅ **Repository-scoped trust policy** - Only your specific repo can assume the role
+- ✅ **Least privilege K8s RBAC** - `AmazonEKSClusterAdminPolicy` (not `system:masters`)
+- ✅ **IAM permission boundaries** - ECR push + EKS describe only (no EC2, S3, etc.)
+- ✅ **Namespace isolation ready** - Easy to scope deployments to specific namespaces
 
 **What happens when you push a tag (e.g., `v0.0.8`):**
 1. GitHub Actions assumes your AWS role via OIDC (no long-lived keys)
