@@ -11,6 +11,9 @@ locals {
     owner   = "mlops-starter"
   }
   myip_cidr = ["${trimspace(data.http.myip.response_body)}/32"]
+  # For demo: allow public but support optional IP restriction
+  # Production: use private endpoint + VPN (see docs/runbook.md)
+  allowed_cidrs = var.enable_ip_restriction ? local.myip_cidr : ["0.0.0.0/0"]
 }
 
 # VPC (simple 2-az)
@@ -46,9 +49,11 @@ module "eks" {
   enable_irsa                              = true
   enable_cluster_creator_admin_permissions = true
 
+  # DEMO ONLY: Public endpoint with optional IP restriction
+  # Production: Use private endpoint + VPN (see docs/runbook.md)
   cluster_endpoint_public_access       = true
   cluster_endpoint_private_access      = true
-  cluster_endpoint_public_access_cidrs = local.myip_cidr
+  cluster_endpoint_public_access_cidrs = local.allowed_cidrs
 
   eks_managed_node_groups = {
     default = {
