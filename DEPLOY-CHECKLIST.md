@@ -101,6 +101,9 @@ Use this only if you want to test infrastructure before setting up GitHub Action
   git tag -a v0.0.8 -m "Testing automated deployment"
   git push origin v0.0.8
   ```
+  **Note**: Only create tags for application releases (code/config changes). 
+  Documentation updates can be pushed to branches without tags - they won't trigger deployment.
+  
 - [ ] Monitor GitHub Actions:
   - Go to repository → Actions tab
   - Watch the `deploy-on-tag` workflow
@@ -110,6 +113,12 @@ Use this only if you want to test infrastructure before setting up GitHub Action
   kubectl get pods -l app=ml-service
   kubectl describe pod <pod-name> | grep Image:  # Should show new tag
   ```
+- [ ] Create GitHub Release (Optional):
+  - Go to repository → Releases → Draft a new release
+  - Select the tag you just pushed (e.g., `v0.0.8`)
+  - Add release notes describing changes
+  - Click "Publish release"
+  - Note: Pushing the tag triggers deployment immediately; GitHub Release is just documentation
 
 ## Security Verification
 
