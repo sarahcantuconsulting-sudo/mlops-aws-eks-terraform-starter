@@ -2,10 +2,16 @@ AWS_PROFILE ?= builder
 CLUSTER_NAME ?= mlops-starter-demo
 AWS_REGION ?= us-east-1
 
-PHONY: tf-apply
+.PHONY: tf-init
+tf-init:
+	cd terraform && AWS_PROFILE=$(AWS_PROFILE) terraform init
+	@bash scripts/import-github-oidc.sh terraform
+
+.PHONY: tf-apply
 tf-apply:
-    @echo "⏱️  Starting Terraform apply..."
-    @START=$$(date +%s); \
+	@echo "⏱️  Starting Terraform apply..."
+	@START=$$(date +%s); \
+    bash scripts/import-github-oidc.sh terraform || true; \
     cd terraform && AWS_PROFILE=builder terraform apply -auto-approve; \
     END=$$(date +%s); \
     DURATION=$$((END - START)); \
@@ -13,8 +19,8 @@ tf-apply:
 
 .PHONY: tf-destroy
 tf-destroy:
-    @echo "⏱️  Starting Terraform destroy..."
-    @START=$$(date +%s); \
+	@echo "⏱️  Starting Terraform destroy..."
+	@START=$$(date +%s); \
     cd terraform && AWS_PROFILE=builder terraform destroy -auto-approve; \
     END=$$(date +%s); \
     DURATION=$$((END - START)); \

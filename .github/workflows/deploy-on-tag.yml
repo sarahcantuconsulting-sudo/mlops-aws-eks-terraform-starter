@@ -1,72 +1,94 @@
 name: deploy-on-tag
 
 on:
-    push:
-        tags:
-            - "v*.*.*"
-            - "v*.*"
+  push:
+    tags:
+      - "v*.*.*"
+      - "v*.*"
 
 permissions:
-    id-token: write # OIDC
-    contents: read
+  id-token: write # OIDC
+  contents: read
 
 jobs:
-    build-push-deploy:
-        runs-on: ubuntu-latest
-        env:
-            AWS_REGION: ${{ vars.AWS_REGION }}
-            AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
-            EKS_CLUSTER_NAME: ${{ vars.EKS_CLUSTER_NAME }}
-            ECR_REPO: ${{ vars.ECR_REPO }}
-            IMAGE_TAG: ${{ github.sha }}
-            ECR_URI: ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com
+  build-push-deploy:
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
+      AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
+      EKS_CLUSTER_NAME: ${{ vars.EKS_CLUSTER_NAME || 'mlops-starter-demo' }}
+      ECR_REPO: ${{ vars.ECR_REPO || 'ml-service' }}
+      IMAGE_TAG: ${{ github.ref_name }} # Use tag name instead of SHA
 
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-            - name: Configure AWS credentials (OIDC)
-              uses: aws-actions/configure-aws-credentials@v4
-              with:
-                  role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
-                  aws-region: ${{ env.AWS_REGION }}
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
 
-            - name: Ensure ECR repo exists
-              run: |
-                  aws ecr describe-repositories --repository-names "${ECR_REPO}" >/dev/null 2>&1 || \
-                    aws ecr create-repository --repository-name "${ECR_REPO}" --image-scanning-configuration scanOnPush=true >/dev/null
+      - name: Verify AWS connection
+        run: |
+          aws sts get-caller-identity
+          echo "Deploying to cluster: ${EKS_CLUSTER_NAME}"
 
-            - name: Login to ECR
-              run: |
-                  aws ecr get-login-password --region "${AWS_REGION}" \
-                    | docker login --username AWS --password-stdin "${ECR_URI}"
+      - name: Login to ECR
+        run: |
+          ECR_URI="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+          aws ecr get-login-password --region "${AWS_REGION}" \
+            | docker login --username AWS --password-stdin "${ECR_URI}"
 
-            - name: Build image
-              run: |
-                  docker build -t "${ECR_REPO}:${IMAGE_TAG}" .
+      - name: Build and push Docker image
+        run: |
+          ECR_URI="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+          IMAGE_URI="${ECR_URI}/${ECR_REPO}:${IMAGE_TAG}"
 
-            - name: Tag & push image (with basic retry)
-              run: |
-                  set -e
-                  docker tag "${ECR_REPO}:${IMAGE_TAG}" "${ECR_URI}/${ECR_REPO}:${IMAGE_TAG}"
-                  for i in 1 2 3; do
-                    docker push "${ECR_URI}/${ECR_REPO}:${IMAGE_TAG}" && break || { echo "push retry $i"; sleep 5; }
-                  done
+          echo "Building image: ${IMAGE_URI}"
+          docker build -t "${IMAGE_URI}" .
 
-            - name: Install kubectl
-              uses: azure/setup-kubectl@v4
+          echo "Pushing image to ECR..."
+          docker push "${IMAGE_URI}"
 
-            - name: Install Helm
-              uses: azure/setup-helm@v4
+          # Also tag as 'latest' for convenience
+          docker tag "${IMAGE_URI}" "${ECR_URI}/${ECR_REPO}:latest"
+          docker push "${ECR_URI}/${ECR_REPO}:latest"
 
-            - name: Update kubeconfig
-              if: ${{ env.EKS_CLUSTER_NAME != '' }}
-              run: |
-                  aws eks update-kubeconfig --name "${EKS_CLUSTER_NAME}" --region "${AWS_REGION}"
+          echo "✅ Image pushed: ${IMAGE_URI}"
 
-            - name: Helm deploy (ml-service)
-              if: ${{ env.EKS_CLUSTER_NAME != '' }}
-              run: |
-                  helm upgrade --install ml-svc ./helm/ml-service \
-                    --set image.repository="${ECR_URI}/${ECR_REPO}" \
-                    --set image.tag="${IMAGE_TAG}"
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: "v3.13.0"
+
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig \
+            --name "${EKS_CLUSTER_NAME}" \
+            --region "${AWS_REGION}" \
+            --alias "${EKS_CLUSTER_NAME}"
+          kubectl config use-context "${EKS_CLUSTER_NAME}"
+
+      - name: Deploy with Helm
+        run: |
+          ECR_URI="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+
+          echo "Deploying ml-service with tag: ${IMAGE_TAG}"
+
+          helm upgrade --install ml-svc ./helm/ml-service \
+            --set image.repository="${ECR_URI}/${ECR_REPO}" \
+            --set image.tag="${IMAGE_TAG}" \
+            --wait \
+            --timeout 5m
+
+          echo "✅ Deployment complete"
+
+      - name: Verify deployment
+        run: |
+          kubectl get pods -l app=ml-service
+          kubectl get ingress ml-service || echo "No ingress configured"
