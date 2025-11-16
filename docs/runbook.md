@@ -1,4 +1,34 @@
-# Deploy
+# MLOps AWS EKS Deployment Runbook
+
+## Quick Reference
+
+**Infrastructure:**
+```bash
+cd terraform
+AWS_PROFILE=admin terraform init
+AWS_PROFILE=admin terraform apply
+```
+
+**ALB Controller:**
+```bash
+make install-alb-controller AWS_PROFILE=builder
+```
+
+**Deploy Service:**
+```bash
+make deploy-ml-service AWS_PROFILE=builder
+# Or via git tag:
+git tag -a v0.0.8 -m "Release v0.0.8"
+git push --tags
+```
+
+**Verify:**
+```bash
+kubectl get ingress ml-service
+curl http://<ALB-DNS>/health
+```
+
+---
 
 ## Cluster Access Security
 
@@ -45,18 +75,39 @@ helm upgrade --install ml-svc ./helm/ml-service --set ingress.enabled=true
 kubectl get ingress ml-service
 ```
 
-## Deploy on Tag
+## Deploy on Tag (CI/CD)
 
+**Trigger automated deployment:**
 ```bash
-git tag -a v0.0.5 -m "v0.0.5: deploy on tag"
+git tag -a v0.0.8 -m "v0.0.8: describe your changes"
 git push --tags
 ```
 
-After workflow:
+**Monitor workflow:**
+- GitHub Actions tab will show build/push/deploy progress
+- Workflow automatically:
+  1. Builds Docker image
+  2. Pushes to ECR with tag = git commit SHA
+  3. Updates kubeconfig
+  4. Runs `helm upgrade --install`
+
+**Verify after workflow completes:**
 ```bash
+# Check deployment
 kubectl get deploy ml-svc
+kubectl get pods -l app=ml-service
+
+# Check service and ingress
 kubectl get svc ml-service
+kubectl get ingress ml-service
+
+# Test endpoint
+curl http://<ALB-DNS>/health
 ```
+
+**Required GitHub configuration:**
+- Repository secrets: `AWS_ROLE_TO_ASSUME`
+- Repository variables: `AWS_ACCOUNT_ID`, `AWS_REGION`, `ECR_REPO`, `CLUSTER_NAME`
 
 ---
 
