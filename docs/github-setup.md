@@ -134,6 +134,8 @@ git tag -a v0.0.8 -m "Testing automated deployment"
 git push origin v0.0.8
 ```
 
+**Note**: Pushing the tag immediately triggers deployment. GitHub Release creation is optional and only for documentation purposes.
+
 ### Watch the Workflow Run
 
 1. Go to your GitHub repository
@@ -152,6 +154,27 @@ git push origin v0.0.8
 ✅ Update kubeconfig  
 ✅ Deploy with Helm  
 ✅ Verify deployment  
+
+### Create GitHub Release (Optional)
+
+After deployment succeeds, you can document the release:
+
+1. Go to repository → **Releases** → **Draft a new release**
+2. Click "Choose a tag" and select `v0.0.8`
+3. Add release title: `v0.0.8 - Description of changes`
+4. Add release notes:
+   ```markdown
+   ## Changes
+   - Feature X added
+   - Bug Y fixed
+   - Updated dependency Z
+   
+   ## Deployment
+   Automatically deployed to EKS via GitHub Actions at [timestamp]
+   ```
+5. Click **Publish release**
+
+**Important**: The GitHub Release is purely documentation. The actual deployment already happened when you pushed the tag.  
 
 ---
 
