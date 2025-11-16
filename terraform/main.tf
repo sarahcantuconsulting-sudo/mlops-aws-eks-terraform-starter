@@ -10,6 +10,7 @@ locals {
     env     = var.env
     owner   = "mlops-starter"
   }
+  myip_cidr = ["${trimspace(data.http.myip.response_body)}/32"]
 }
 
 # VPC (simple 2-az)
@@ -27,6 +28,10 @@ module "vpc" {
   tags               = local.tags
 }
 
+data "http" "myip" {
+  url = "https://checkip.amazonaws.com/"
+}
+
 # EKS (managed node group demo)
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
@@ -41,12 +46,16 @@ module "eks" {
   enable_irsa                              = true
   enable_cluster_creator_admin_permissions = true
 
+  cluster_endpoint_public_access       = true
+  cluster_endpoint_private_access      = true
+  cluster_endpoint_public_access_cidrs = local.myip_cidr
+
   eks_managed_node_groups = {
     default = {
       min_size       = 1
       max_size       = 2
       desired_size   = 1
-      instance_types = ["t3.medium"]
+      instance_types = ["t3.micro"]
       capacity_type  = "ON_DEMAND"
       labels         = { role = "workers" }
       tags           = local.tags
