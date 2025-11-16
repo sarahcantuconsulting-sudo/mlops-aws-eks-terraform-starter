@@ -42,17 +42,11 @@ helm repo add eks https://aws.github.io/eks-charts > /dev/null 2>&1 || true
 helm repo update > /dev/null
 
 # Check for and clear any pending Helm operations
-echo "[alb-controller] Checking for existing Helm release..."
-if helm list -n kube-system | grep -q aws-load-balancer-controller; then
-  RELEASE_STATUS=$(helm status aws-load-balancer-controller -n kube-system -o json 2>/dev/null | grep -o '"status":"[^"]*"' | cut -d'"' -f4 || echo "unknown")
-  echo "[alb-controller] Current release status: ${RELEASE_STATUS}"
-  
-  if [ "$RELEASE_STATUS" = "pending-install" ] || [ "$RELEASE_STATUS" = "pending-upgrade" ] || [ "$RELEASE_STATUS" = "pending-rollback" ]; then
-    echo "[alb-controller] Detected stuck release, cleaning up..."
-    # Delete the pending operation secret
-    kubectl delete secret -n kube-system -l status=pending-install,name=aws-load-balancer-controller 2>/dev/null || true
-    kubectl delete secret -n kube-system -l status=pending-upgrade,name=aws-load-balancer-controller 2>/dev/null || true
-    sleep 2
+if helm status aws-load-balancer-controller -n kube-system &> /dev/null; then
+  RELEASE_STATUS=$(helm status aws-load-balancer-controller -n kube-system -o json | grep -o '"status":"[^"]*"' | cut -d'"' -f4)
+  if [ "$RELEASE_STATUS" = "pending-install" ] || [ "$RELEASE_STATUS" = "pending-upgrade" ]; then
+    echo "[alb-controller] Cleaning up stuck Helm release..."
+    helm rollback aws-load-balancer-controller 0 -n kube-system --wait || helm uninstall aws-load-balancer-controller -n kube-system --wait
   fi
 fi
 
