@@ -17,3 +17,9 @@ variable "cluster_version" {
   type    = string
   default = "1.29"
 }
+
+variable "enable_ip_restriction" {
+  type        = bool
+  default     = false
+  description = "Restrict cluster API to your current IP (not recommended for production - use VPN instead)"
+}
