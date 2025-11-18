@@ -178,3 +178,48 @@ All commands support overriding defaults:
 ```bash
 make install-alb-controller CLUSTER_NAME=my-cluster AWS_REGION=us-west-2 AWS_PROFILE=admin
 ```
+
+## /predict endpoint
+
+**Request (POST)**
+```
+POST /predict
+Content-Type: application/json
+
+{
+  "features": [5.1, 3.5, 1.4, 0.2]
+}
+```
+
+**Response**
+```
+{
+  "prediction": 0
+}
+```
+
+### Model Path Configuration
+
+The model is loaded from a configurable path via the `MODEL_PATH` environment variable. Default is `/models/model.pkl`.
+
+To supply your own model:
+- Mount it to the path used in `MODEL_PATH`
+- Or override the value via Helm:
+```yaml
+env:
+  - name: MODEL_PATH
+    value: "/models/your_model.pkl"
+```
+
+### Autoscaling
+
+Horizontal Pod Autoscaler is enabled by default with:
+- `minReplicas: 1`
+- `maxReplicas: 3`
+- `targetCPUUtilizationPercentage: 70`
+
+Resource requests and limits are set to keep workloads stable and efficient by default.
+
+---
+
+This concludes the additions for model serving, autoscaling, and Helm integration.

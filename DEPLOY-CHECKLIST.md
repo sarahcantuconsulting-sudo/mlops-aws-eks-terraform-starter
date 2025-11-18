@@ -128,7 +128,7 @@ Use this only if you want to test infrastructure before setting up GitHub Action
   ```
 - [ ] Verify EKS access policy (should be ClusterAdmin, not system:masters):
   ```bash
-  aws eks list-access-entries --cluster-name mlops-starter-demo --profile admin
+  aws eks list-access-entries --cluster-name mlops-starter-demo --region us-east-1 --profile admin
   aws eks describe-access-entry --cluster-name mlops-starter-demo --principal-arn <role-arn> --profile admin
   ```
 - [ ] Verify no AWS credentials in GitHub:
