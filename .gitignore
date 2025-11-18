@@ -13,5 +13,9 @@ node_modules/
 *.pyo
 *.pyd
 
+# Model artifacts (regenerate with: python scripts/train_model.py)
+*.pkl
+*.joblib
+
 # Don't commit generated K8s manifests with hardcoded values
 # k8s/infra/*-generated.yaml
