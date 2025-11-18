@@ -1,13 +1,17 @@
 ## scripts/train_model.py
-from sklearn.datasets import load_iris
-from sklearn.linear_model import LogisticRegression
-import joblib
 import os
+from sklearn.datasets import load_iris
+from sklearn.ensemble import RandomForestClassifier
+import joblib
 
-X, y = load_iris(return_X_y=True)
-clf = LogisticRegression(max_iter=200)
-clf.fit(X, y)
-
+# Create output directory
 os.makedirs("local_models", exist_ok=True)
-joblib.dump(clf, "local_models/model.pkl")
-print("Model trained and saved to local_models/model.pkl")
+
+# Train simple model
+X, y = load_iris(return_X_y=True)
+model = RandomForestClassifier(n_estimators=10, random_state=42)
+model.fit(X, y)
+
+# Save model
+joblib.dump(model, "local_models/model.pkl")
+print("✅ Model trained and saved to local_models/model.pkl")
