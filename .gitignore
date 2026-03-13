@@ -19,3 +19,9 @@ node_modules/
 
 # Don't commit generated K8s manifests with hardcoded values
 # k8s/infra/*-generated.yaml
+
+# Test / coverage artifacts
+.coverage
+coverage.xml
+htmlcov/
+.pytest_cache/
