@@ -4,3 +4,7 @@ joblib
 scikit-learn
 numpy
 pydantic
+# test dependencies
+httpx
+pytest
+pytest-cov
